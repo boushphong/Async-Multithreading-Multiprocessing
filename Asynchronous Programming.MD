@@ -99,6 +99,6 @@ async def main():
 
 asyncio.run(main())
 
-# Start fetching data
+# Start fetching data (after 2 seconds)
 # Task was cancelled
 ```
