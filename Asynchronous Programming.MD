@@ -103,3 +103,4 @@ asyncio.run(main())
 ```
 
 `asyncio.sleep()` is used as a way to yield control back to the event loop, allowing other tasks (coroutines) to run.
+The asyncio event loop maintains a queue of tasks (coroutines) that are ready to run. When a task awaits on an operation (like `asyncio.sleep()`), it's suspended and control is returned to the event loop. The event loop then runs the next task in its queue. When the awaited operation is complete (in this case, when the sleep time is over), the task is added back to the event loop's queue and will be run again when its turn comes up.
