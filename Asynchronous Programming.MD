@@ -98,7 +98,8 @@ async def main():
 
 
 asyncio.run(main())
-
 # Start fetching data (after 2 seconds)
 # Task was cancelled
 ```
+
+`asyncio.sleep()` is used as a way to yield control back to the event loop, allowing other tasks (coroutines) to run.
