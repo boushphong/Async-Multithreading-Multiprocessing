@@ -73,3 +73,32 @@ asyncio.run(main())
 # 8
 # 9
 ```
+
+```python3
+import asyncio
+
+
+async def fetch_data(data: str) -> dict:
+    print(f"Start fetching {data}")
+    await asyncio.sleep(5)
+    print(f"Done fetching {data}")
+    return {"data": data}
+
+
+async def main():
+    task = asyncio.create_task(fetch_data("data"))
+    await asyncio.sleep(2)
+
+    task.cancel()
+    try:
+        data: dict = await task
+        print(data)
+    except asyncio.CancelledError:
+        print("Task was cancelled")
+
+
+asyncio.run(main())
+
+# Start fetching data
+# Task was cancelled
+```
