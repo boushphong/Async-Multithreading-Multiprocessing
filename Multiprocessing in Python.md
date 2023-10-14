@@ -3,6 +3,18 @@
 
 The multiprocessing module provides features like process pools, interprocess communication, shared state and robustness, which are not available with threading.
 
+## Difference between a Process and a Thread
+A **process** is an instance of a program that is being executed. It contains the program code and its current activity. Each process has a separate memory space, which means that a process runs independently and is isolated from other processes. It cannot directly access shared data in other processes. Switching from one process to another requires some time (relatively) for saving and loading registers, memory maps, and other administrative information.
+
+A **thread**, on the other hand, is a subset of a process. A thread is a sequence of instructions within a process. It can be thought of as a lightweight process. Threads within the same process share the same data space with the main process and can therefore share information more easily than if they were separate processes.
+
+**Some key differences:**
+- Threads will share the same address space of a process, they will have their own instruction sets. Each thread will have a specific task to execute, hence they will have their own stack memory, instruction pointer,. In Python, if you have a global variable in your program, this variable can be accessed by another threads. Heap memory can be access be threads as well.
+
+- Processes operate within their own distinct address spaces. If they need to share information, they must use interprocess communication (IPC) mechanisms. These mechanisms can include techniques like reading and writing to a shared file on disk, utilizing shared memory, or employing message passing via pipes.
+
+- A memory leak within a process typically remains confined to that specific process, given that there's no interprocess communication involved. This means it doesn't impact other processes. However, a memory leak within a thread is more problematic as it can influence the entire program that the thread belongs to, potentially affecting other threads within the same program.
+
 ## Overcoming the GIL with Multiprocessing
 The Global Interpreter Lock (GIL) is a mechanism used in Python's CPython interpreter to synchronize access to Python objects, preventing multiple threads from executing Python bytecodes at once. This lock is necessary because CPython's memory management is not thread-safe.
 
@@ -18,12 +30,12 @@ import multiprocessing
 
 def calc_square(numbers):
     for n in numbers:
-        print('square:', n * n)
+        print("square:", n * n)
 
 
 def calc_cube(numbers):
     for n in numbers:
-        print('cube:', n * n * n)
+        print("cube:", n * n * n)
 
 
 if __name__ == "__main__":
@@ -66,9 +78,9 @@ square_result = []
 
 def calc_square(numbers):
     for n in numbers:
-        print("square " + str(n*n))
+        print(f"square: {n*n}")
         square_result.append(n*n)
-    print("Within a process: Result: " + str(square_result))
+    print(f"Within a process: Result: {square_result}")
 
 
 if __name__ == '__main__':
@@ -78,14 +90,14 @@ if __name__ == '__main__':
     p1.start()
     p1.join()
 
-    print("Main process's result: " + str(square_result))
+    print(f"Main process's result: {square_result}")
 
 # Print Result
 """
-square 0
-square 1
-square 4
-square 9
+square: 0
+square: 1
+square: 4
+square: 9
 Within a process: Result: [0, 1, 4, 9]
 Main process's result: []
 """
