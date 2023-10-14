@@ -27,7 +27,6 @@ It's important to note that while multiprocessing overcomes the GIL, it introduc
 ```python
 import multiprocessing
 
-
 def calc_square(numbers):
     for n in numbers:
         print("square:", n * n)
@@ -75,7 +74,6 @@ import multiprocessing
 
 square_result = []
 
-
 def calc_square(numbers):
     for n in numbers:
         print(f"square: {n*n}")
@@ -112,3 +110,74 @@ The `multiprocessing` module in Python uses a technique called **"forking"** to 
 
 When you call `multiprocessing.Process()`, Python forks the current process. The child process that's created runs the function you passed in, while the parent process continues to the next line of code.
 
+## Interprocess Communication (IPC) techniques
+1. **Shared Memory**: Shared memory is one of the fastest methods of Interprocess Communication (IPC). In this method, a memory area is shared between multiple processes. This means that all these processes can access and modify this shared memory directly. It's a very efficient way of passing data between processes, but it requires careful synchronization to avoid race conditions, where two processes attempt to read or modify the same piece of memory at the same time.
+
+The `multiprocessing` module provides a `Value` or `Array` class for storing data in shared memory.
+```python
+from multiprocessing import Process, Value, Array
+
+def func(n, a):
+    n.value = 3.1415927
+    for i in range(len(a)):
+        a[i] *= -1
+
+if __name__ == '__main__':
+    # 'd' stands for double precision floating point number. Value('d', 0.0) creates a shared memory space 
+    num = Value('d', 0.0)  that can store a double precision floating point number.
+    # 'i' stands for integer. Array('i', range(10)) creates a shared memory space that store an array of integers.
+    arr = Array('i', range(10))
+
+    p = Process(target=func, args=(num, arr))
+    p.start()
+    p.join()
+
+    print(num.value)
+    print(arr[:])
+
+# Print Result
+"""
+3.1415927
+[0, -1, -2, -3, -4, -5, -6, -7, -8, -9]
+"""
+```
+
+2. **Message Pipe (Pipes)**: Pipes provide a one-way communication channel between processes. A pipe has a write end and a read end. One process writes data to the pipe, and another process reads that data. The data is handled in a FIFO (First In, First Out) manner. Pipes are particularly useful for setting up communication between parent and child processes or between "chained" processes, such as in a pipeline of shell commands.
+
+**Message Pipe (Pipes)**: The `multiprocessing` module provides a `Pipe` function which returns a pair of connection objects connected by a pipe.
+```python
+from multiprocessing import Process, Pipe
+
+def func(conn):
+    conn.send(['hello world'])
+    conn.close()
+
+if __name__ == '__main__':
+    parent_conn, child_conn = Pipe()
+    p = Process(target=func, args=(child_conn,))
+    p.start()
+    print(parent_conn.recv())   # prints "[‘hello world’]"
+    p.join()
+```
+
+3. **File-based Communication**: This is a simple and common method of IPC. In this method, one process writes data to a file, and another process reads from that file to get the data. This method is easy to implement and understand, but it's slower than other methods because it involves disk I/O operations. It's also less secure because any process (or even an external user) with the right permissions can read from or write to the file.
+
+Standard file I/O operations in Python can be used to achieved File-based IPC. However, you need to be careful to avoid race conditions by using some form of locking or synchronization. The `multiprocessing` module provides a `Lock` class that you can use to ensure that only one process writes to the file at a time.
+
+```python
+from multiprocessing import Process, Lock
+
+def func(lock, i):
+    lock.acquire()
+    try:
+        with open('file.txt', 'a') as f:
+            f.write('Hello world {}\n'.format(i))
+    finally:
+        lock.release()
+
+if __name__ == '__main__':
+    lock = Lock()
+
+    for num in range(10):
+        Process(target=func, args=(lock, num)).start()
+```
